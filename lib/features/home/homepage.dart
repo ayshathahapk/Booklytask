@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'bookdetailspage.dart';
 
 class Book {
   final String title;
@@ -19,23 +19,23 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Book> books = [
     Book(
-      title: "The Alchemist",
-      author: "Paulo Coelho",
+      title: "BOOK 1",
+      author: "Auther 1",
       coverImageUrl: "assets/images/book.png",
     ),
     Book(
-      title: "1984",
-      author: "George Orwell",
+      title: "BOOK 2",
+      author: "Auther 2",
       coverImageUrl: "assets/images/book.png",
     ),
     Book(
-      title: "To Kill a Mockingbird",
-      author: "Harper Lee",
+      title: "BOOK 3",
+      author: "Auther 3",
       coverImageUrl: "assets/images/book.png",
     ),
     Book(
-      title: "The Great Gatsby",
-      author: "F. Scott Fitzgerald",
+      title: "BOOK 4",
+      author: "Auther 5",
       coverImageUrl: "assets/images/book.png",
     ),
   ];
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Book List"),
+        title: const Text("Books"),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -80,6 +80,14 @@ class _HomePageState extends State<HomePage> {
           return Card(
             margin: const EdgeInsets.all(8),
             child: ListTile(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BookDetailPage(book: book),
+                  ),
+                );
+              },
               leading: Image.asset(
                 book.coverImageUrl,
                 width: 50,
