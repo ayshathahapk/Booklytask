@@ -8,6 +8,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:booklytask/features/login/widgets/schedule_card.dart';
+import 'package:booklytask/features/login/widgets/update_dialog.dart';
+import 'package:booklytask/features/login/widgets/date_picker_button.dart';
 
 class HomePage extends StatefulWidget {
   final String empId;
@@ -18,9 +21,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Controllers
   late TextEditingController _empIdController;
+
+  // State variables
   DateTime _selectedDate = DateTime.now();
   List<Map<String, dynamic>> _staffData = [];
+
+  // API endpoints
+  static const String _baseUrl = 'https://neptonglobal.co.in/Master/schedule';
+  static const String _scheduleDataEndpoint = '/scheduledata.php';
+  static const String _saveScheduleEndpoint = '/save_sch.php';
 
   @override
   void initState() {
@@ -29,21 +40,30 @@ class _HomePageState extends State<HomePage> {
     _fetchScheduleData();
   }
 
+  @override
+  void dispose() {
+    _empIdController.dispose();
+    super.dispose();
+  }
+
+  // API Calls
   Future<void> _fetchScheduleData() async {
     final empId = _empIdController.text.trim();
     final formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
-    if (empId.isEmpty) return;
 
-    final url = Uri.parse(
-      "https://neptonglobal.co.in/Master/schedule/scheduledata.php",
-    );
+    if (empId.isEmpty) {
+      _showErrorSnackbar('Employee ID is required');
+      return;
+    }
 
     try {
       final response = await http.post(
-        url,
+        Uri.parse('$_baseUrl$_scheduleDataEndpoint'),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {'empid': empId, 'edate': formattedDate},
       );
+
+      if (!mounted) return;
 
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
@@ -54,13 +74,38 @@ class _HomePageState extends State<HomePage> {
         _showErrorSnackbar('Server error: ${response.statusCode}');
       }
     } catch (e) {
-      _showErrorSnackbar('Something went wrong: $e');
+      if (!mounted) return;
+      _showErrorSnackbar('Failed to fetch schedule data: $e');
     }
   }
 
+  Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl$_saveScheduleEndpoint'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'json_val': jsonEncode(updateData)},
+      );
+
+      if (response.statusCode == 200 && response.body.contains('Success')) {
+        return true;
+      }
+      throw Exception('Failed to update status: ${response.body}');
+    } catch (e) {
+      _showErrorSnackbar('Failed to update status: $e');
+      return false;
+    }
+  }
+
+  // UI Helper Functions
   void _showErrorSnackbar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
     );
   }
 
@@ -80,22 +125,42 @@ class _HomePageState extends State<HomePage> {
       },
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() => _selectedDate = picked);
-      _fetchScheduleData();
+      await _fetchScheduleData();
+    }
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        throw Exception('Could not launch dialer');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorSnackbar('Could not launch dialer for $phoneNumber');
     }
   }
 
   Future<void> logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } catch (e) {
+      _showErrorSnackbar('Failed to logout: $e');
+    }
   }
 
+  // Dialog Functions
   void _showUpdateDialog(int index) {
     String? selectedStatus = _staffData[index]['Status'];
     final TextEditingController remarksController = TextEditingController();
@@ -105,7 +170,6 @@ class _HomePageState extends State<HomePage> {
     final TextEditingController paymentDescriptionController =
         TextEditingController();
     final TextEditingController taController = TextEditingController();
-
     String? selectedPaymentType;
     DateTime? selectedNextDate;
 
@@ -114,7 +178,7 @@ class _HomePageState extends State<HomePage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            Future<void> _pickDate() async {
+            Future<void> _pickNextDate() async {
               final pickedDate = await showDatePicker(
                 context: context,
                 initialDate: DateTime.now(),
@@ -128,204 +192,59 @@ class _HomePageState extends State<HomePage> {
               }
             }
 
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              title: const Text(
-                'Update Status',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ...['Completed', 'Pending', 'Cancel'].map((status) {
-                      return RadioListTile<String>(
-                        title: Text(
-                          status,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        value: status,
-                        groupValue: selectedStatus,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedStatus = value;
-                          });
-                        },
-                      );
-                    }).toList(),
-                    const Divider(height: 30),
-                    TextField(
-                      controller: remarksController,
-                      decoration: const InputDecoration(
-                        labelText: 'Remarks',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
-                      ),
-                      style: const TextStyle(fontSize: 16),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: serviceChargeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Service Charge',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: receiptsNoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Receipts No',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
-                      ),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: selectedPaymentType,
-                      items:
-                          ['Cash', 'Transfer', 'Cheque'].map((type) {
-                            return DropdownMenuItem(
-                              value: type,
-                              child: Text(
-                                type,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentType = value;
-                        });
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Payment Type',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
-                      ),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: paymentDescriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Payment Description',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
-                      ),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: taController,
-                      decoration: const InputDecoration(
-                        labelText: 'TA',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    if (selectedStatus == 'Pending') ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              selectedNextDate == null
-                                  ? 'Next Date: Not selected'
-                                  : 'Next Date: ${selectedNextDate!.toLocal().toString().split(' ')[0]}',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.calendar_today, size: 24),
-                            onPressed: _pickDate,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(fontSize: 16)),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Validate fields
-                    if (selectedStatus == null ||
-                        remarksController.text.isEmpty ||
-                        serviceChargeController.text.isEmpty ||
-                        receiptsNoController.text.isEmpty ||
-                        selectedPaymentType == null ||
-                        paymentDescriptionController.text.isEmpty ||
-                        taController.text.isEmpty ||
-                        (selectedStatus == 'Pending' &&
-                            selectedNextDate == null)) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Please fill all fields before confirming.',
-                          ),
-                        ),
-                      );
-                      return;
-                    }
+            return UpdateDialog(
+              selectedStatus: selectedStatus,
+              remarksController: remarksController,
+              serviceChargeController: serviceChargeController,
+              receiptsNoController: receiptsNoController,
+              paymentDescriptionController: paymentDescriptionController,
+              taController: taController,
+              selectedPaymentType: selectedPaymentType,
+              selectedNextDate: selectedNextDate,
+              onStatusChanged: (value) {
+                setState(() {
+                  selectedStatus = value;
+                });
+              },
+              onPaymentTypeChanged: (value) {
+                setState(() {
+                  selectedPaymentType = value;
+                });
+              },
+              onPickDate: _pickNextDate,
+              onUpdate: () async {
+                if (!_validateUpdateFields(
+                  selectedStatus,
+                  remarksController,
+                  serviceChargeController,
+                  receiptsNoController,
+                  selectedPaymentType,
+                  paymentDescriptionController,
+                  taController,
+                  selectedNextDate,
+                )) {
+                  return;
+                }
 
-                    Navigator.pop(context); // Close the dialog
+                final updateData = _prepareUpdateData(
+                  index,
+                  selectedStatus!,
+                  remarksController.text,
+                  serviceChargeController.text,
+                  receiptsNoController.text,
+                  selectedPaymentType!,
+                  paymentDescriptionController.text,
+                  taController.text,
+                  selectedNextDate,
+                );
 
-                    final Map<String, dynamic> additionalData = {
-                      'remarks': remarksController.text,
-                      'serviceCharge': serviceChargeController.text,
-                      'receiptsNo': receiptsNoController.text,
-                      'paymentType': selectedPaymentType,
-                      'paymentDescription': paymentDescriptionController.text,
-                      'ta': taController.text,
-                      if (selectedStatus == 'Pending')
-                        'nextDate': selectedNextDate!.toIso8601String(),
-                    };
-
-                    _confirmUpdateStatus(
-                      index,
-                      selectedStatus!,
-                      additionalData: additionalData,
-                    );
-                  },
-                  child: const Text('Update', style: TextStyle(fontSize: 16)),
-                ),
-              ],
+                final success = await _updateScheduleStatus(updateData);
+                if (success && mounted) {
+                  Navigator.of(context).pop();
+                  await _fetchScheduleData();
+                  _showSuccessDialog();
+                }
+              },
             );
           },
         );
@@ -333,117 +252,73 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _confirmUpdateStatus(
-    int index,
-    String status, {
-    required Map<String, dynamic> additionalData,
-  }) {
-    if (additionalData['remarks'] == '' ||
-        additionalData['serviceCharge'] == '' ||
-        additionalData['receiptsNo'] == '' ||
-        additionalData['paymentType'] == null ||
-        additionalData['paymentDescription'] == '' ||
-        additionalData['ta'] == '' ||
-        (status == 'Pending' && additionalData['nextDate'] == null)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
-      return;
+  bool _validateUpdateFields(
+    String? status,
+    TextEditingController remarks,
+    TextEditingController serviceCharge,
+    TextEditingController receiptsNo,
+    String? paymentType,
+    TextEditingController paymentDescription,
+    TextEditingController ta,
+    DateTime? nextDate,
+  ) {
+    if (status == null ||
+        remarks.text.isEmpty ||
+        serviceCharge.text.isEmpty ||
+        receiptsNo.text.isEmpty ||
+        paymentType == null ||
+        paymentDescription.text.isEmpty ||
+        ta.text.isEmpty ||
+        (status == 'Pending' && nextDate == null)) {
+      _showErrorSnackbar('Please fill all required fields');
+      return false;
     }
+    return true;
+  }
 
+  Map<String, dynamic> _prepareUpdateData(
+    int index,
+    String status,
+    String remarks,
+    String serviceCharge,
+    String receiptsNo,
+    String paymentType,
+    String paymentDescription,
+    String ta,
+    DateTime? nextDate,
+  ) {
+    return {
+      'ticket': _staffData[index]['ticket'].toString(),
+      'Status': status,
+      'Next Date': nextDate?.toIso8601String().split('T').first ?? '',
+      'Remarks': remarks,
+      'Service Charge': serviceCharge,
+      'Receipts No': receiptsNo,
+      'Payments Type': paymentType,
+      'Pay Description': paymentDescription,
+      'TA': ta,
+      'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
+    };
+  }
+
+  void _showSuccessDialog() {
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Confirm Update'),
-            content: Text('Do you want to update the status to "$status"?'),
+            title: const Text('Success'),
+            content: const Text('Status updated successfully!'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context); // Close confirmation dialog
-
-                  final ticket = _staffData[index]['ticket'];
-                  final body = {
-                    'ticket': ticket.toString(),
-                    'Status': status,
-                    'Next Date':
-                        additionalData['nextDate']?.split('T').first ?? '',
-                    'Remarks': additionalData['remarks'],
-                    'Service Charge': additionalData['serviceCharge'],
-                    'Receipts No': additionalData['receiptsNo'],
-                    'Payments Type': additionalData['paymentType'],
-                    'Pay Description': additionalData['paymentDescription'],
-                    'TA': additionalData['ta'],
-                    'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
-                  };
-
-                  try {
-                    final response = await http.post(
-                      Uri.parse(
-                        'https://neptonglobal.co.in/Master/schedule/save_sch.php',
-                      ),
-                      headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                      },
-                      body: body,
-                    );
-
-                    if (response.statusCode == 200 &&
-                        response.body.contains('Success')) {
-                      setState(() {
-                        _staffData[index]['Status'] = status;
-                        _staffData[index].addAll(additionalData);
-                      });
-
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: const Text('Success'),
-                              content: const Text(
-                                'Status updated successfully!',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            ),
-                      );
-                    } else {
-                      throw Exception('Failed to save data');
-                    }
-                  } catch (e) {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            title: const Text('Error'),
-                            content: Text(
-                              'Failed to update status. ${e.toString()}',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          ),
-                    );
-                  }
-                },
-                child: const Text('Confirm'),
+                child: const Text('OK'),
               ),
             ],
           ),
     );
   }
 
+  // PDF Generation
   Future<void> _generateAndPrintPdf() async {
     final pdf = pw.Document();
 
@@ -456,32 +331,13 @@ class _HomePageState extends State<HomePage> {
                 level: 0,
                 child: pw.Text(
                   "Schedule for ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ),
-              ..._staffData.map((staff) {
-                return pw.Container(
-                  margin: const pw.EdgeInsets.only(bottom: 12),
-                  padding: const pw.EdgeInsets.all(8),
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border.all(color: PdfColors.grey),
-                    borderRadius: pw.BorderRadius.circular(8),
-                  ),
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      _pdfRow("Ticket No", staff['ticket']),
-                      _pdfRow("Date", staff['date']),
-                      _pdfRow("NEP ID", staff['nepid']),
-                      _pdfRow("Customer", staff['cust']),
-                      _pdfRow("Description", staff['desp']),
-                      _pdfRow("Mobile", staff['mob']),
-                      _pdfRow("Area", staff['area']),
-                      _pdfRow("Service Type", staff['service_type']),
-                      _pdfRow("Status", staff['status']),
-                    ],
-                  ),
-                );
-              }).toList(),
+              ..._staffData.map((staff) => _buildPdfStaffCard(staff)).toList(),
             ],
       ),
     );
@@ -489,7 +345,32 @@ class _HomePageState extends State<HomePage> {
     await Printing.layoutPdf(onLayout: (format) => pdf.save());
   }
 
-  pw.Widget _pdfRow(String title, String value) {
+  pw.Widget _buildPdfStaffCard(Map<String, dynamic> staff) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 12),
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey),
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          _pdfRow("Ticket No", staff['ticket']),
+          _pdfRow("Date", staff['date']),
+          _pdfRow("NEP ID", staff['nepid']),
+          _pdfRow("Customer", staff['cust']),
+          _pdfRow("Description", staff['desp']),
+          _pdfRow("Mobile", staff['mob']),
+          _pdfRow("Area", staff['area']),
+          _pdfRow("Service Type", staff['service_type']),
+          _pdfRow("Status", staff['status']),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _pdfRow(String title, dynamic value) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 2),
       child: pw.Row(
@@ -502,7 +383,7 @@ class _HomePageState extends State<HomePage> {
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             ),
           ),
-          pw.Expanded(child: pw.Text(value ?? '')),
+          pw.Expanded(child: pw.Text(value?.toString() ?? '')),
         ],
       ),
     );
@@ -512,91 +393,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
     final empId = _empIdController.text.trim();
-    Future<void> _makePhoneCall(String phoneNumber) async {
-      final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not launch dialer for $phoneNumber')),
-        );
-      }
-    }
-
-    Widget _buildInfoRow(String title, dynamic value) {
-      Color? statusColor;
-      if (title.toLowerCase() == 'status') {
-        switch (value.toUpperCase()) {
-          case 'PENDING':
-            statusColor = Colors.orange;
-            break;
-          case 'CANCEL':
-            statusColor = Colors.red;
-            break;
-          case 'COMPLETED':
-            statusColor = Colors.green;
-            break;
-          default:
-            statusColor = Colors.black87;
-        }
-      }
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 110,
-              child: Text(
-                '$title:',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14.5,
-                ),
-              ),
-            ),
-            Expanded(
-              child:
-                  value is Widget
-                      ? value
-                      : Text(
-                        value,
-                        style: TextStyle(
-                          fontSize: 14.5,
-                          color: statusColor ?? Colors.black87,
-                          fontWeight:
-                              title.toLowerCase() == 'status'
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                        ),
-                      ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    Widget _buildStatusButton(int index) {
-      return Container(
-        alignment: Alignment.centerRight,
-        child: ElevatedButton(
-          onPressed: () => _showUpdateDialog(index),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            textStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: const Text('UPDATE'),
-        ),
-      );
-    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F5FA),
@@ -644,30 +440,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            Text(
-              "Select Date",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _pickDate,
-              icon: const Icon(Icons.calendar_today, size: 18),
-              label: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                side: const BorderSide(color: Color(0xFF435EA6)),
-              ),
-            ),
+            DatePickerButton(selectedDate: _selectedDate, onPressed: _pickDate),
             const SizedBox(height: 24),
             Expanded(
               child:
@@ -676,60 +449,10 @@ class _HomePageState extends State<HomePage> {
                       : ListView.builder(
                         itemCount: _staffData.length,
                         itemBuilder: (context, index) {
-                          final staff = _staffData[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _buildInfoRow('Ticket No', staff['ticket']),
-                                  _buildInfoRow('Date', staff['date']),
-                                  _buildInfoRow('NEP ID', staff['nepid']),
-                                  _buildInfoRow('Customer', staff['cust']),
-                                  _buildInfoRow('Description', staff['desp']),
-                                  // 👇 Replaced mobile row with clickable phone
-                                  _buildInfoRow(
-                                    'Mobile',
-                                    GestureDetector(
-                                      onTap: () => _makePhoneCall(staff['mob']),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            staff['mob'],
-                                            style: const TextStyle(
-                                              color: Colors.blue,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                              fontSize: 14.5,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Icon(
-                                            Icons.phone,
-                                            size: 18,
-                                            color: Colors.green,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  _buildInfoRow('Area', staff['area']),
-                                  _buildInfoRow(
-                                    'Service Type',
-                                    staff['service_type'],
-                                  ),
-                                  _buildInfoRow('Status', staff['status']),
-                                  const SizedBox(height: 8),
-                                  _buildStatusButton(index),
-                                ],
-                              ),
-                            ),
+                          return ScheduleCard(
+                            staff: _staffData[index],
+                            onPhoneCall: _makePhoneCall,
+                            onUpdate: () => _showUpdateDialog(index),
                           );
                         },
                       ),
