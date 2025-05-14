@@ -7,6 +7,7 @@ import 'package:booklytask/features/login/loginpage.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   final String empId;
@@ -33,7 +34,9 @@ class _HomePageState extends State<HomePage> {
     final formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
     if (empId.isEmpty) return;
 
-    final url = Uri.parse("https://neptonglobal.co.in/Master/schedule/scheduledata.php");
+    final url = Uri.parse(
+      "https://neptonglobal.co.in/Master/schedule/scheduledata.php",
+    );
 
     try {
       final response = await http.post(
@@ -93,13 +96,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   void _showUpdateDialog(int index) {
     String? selectedStatus = _staffData[index]['Status'];
     final TextEditingController remarksController = TextEditingController();
-    final TextEditingController serviceChargeController = TextEditingController();
+    final TextEditingController serviceChargeController =
+        TextEditingController();
     final TextEditingController receiptsNoController = TextEditingController();
-    final TextEditingController paymentDescriptionController = TextEditingController();
+    final TextEditingController paymentDescriptionController =
+        TextEditingController();
     final TextEditingController taController = TextEditingController();
 
     String? selectedPaymentType;
@@ -125,16 +129,23 @@ class _HomePageState extends State<HomePage> {
             }
 
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              title: const Text('Update Status', style: TextStyle(fontWeight: FontWeight.bold)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: const Text(
+                'Update Status',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Status Radio Options
                     ...['Completed', 'Pending', 'Cancel'].map((status) {
                       return RadioListTile<String>(
-                        title: Text(status),
+                        title: Text(
+                          status,
+                          style: const TextStyle(fontSize: 16),
+                        ),
                         value: status,
                         groupValue: selectedStatus,
                         onChanged: (value) {
@@ -144,47 +155,63 @@ class _HomePageState extends State<HomePage> {
                         },
                       );
                     }).toList(),
-
-                    const Divider(),
-
-                    // Common input fields
+                    const Divider(height: 30),
                     TextField(
                       controller: remarksController,
                       decoration: const InputDecoration(
                         labelText: 'Remarks',
                         border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 12,
+                        ),
                       ),
+                      style: const TextStyle(fontSize: 16),
                       maxLines: 2,
                     ),
-                    const SizedBox(height: 10),
-
+                    const SizedBox(height: 16),
                     TextField(
                       controller: serviceChargeController,
                       decoration: const InputDecoration(
                         labelText: 'Service Charge',
                         border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 12,
+                        ),
                       ),
                       keyboardType: TextInputType.number,
+                      style: const TextStyle(fontSize: 16),
                     ),
-                    const SizedBox(height: 10),
-
+                    const SizedBox(height: 16),
                     TextField(
                       controller: receiptsNoController,
                       decoration: const InputDecoration(
                         labelText: 'Receipts No',
                         border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 12,
+                        ),
                       ),
+                      style: const TextStyle(fontSize: 16),
                     ),
-                    const SizedBox(height: 10),
-
+                    const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: selectedPaymentType,
-                      items: ['Cash', 'Transfer', 'Cheque'].map((type) {
-                        return DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        );
-                      }).toList(),
+                      items:
+                          ['Cash', 'Transfer', 'Cheque'].map((type) {
+                            return DropdownMenuItem(
+                              value: type,
+                              child: Text(
+                                type,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                       onChanged: (value) {
                         setState(() {
                           selectedPaymentType = value;
@@ -193,30 +220,41 @@ class _HomePageState extends State<HomePage> {
                       decoration: const InputDecoration(
                         labelText: 'Payment Type',
                         border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 12,
+                        ),
                       ),
+                      style: const TextStyle(fontSize: 16),
                     ),
-                    const SizedBox(height: 10),
-
+                    const SizedBox(height: 16),
                     TextField(
                       controller: paymentDescriptionController,
                       decoration: const InputDecoration(
                         labelText: 'Payment Description',
                         border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 12,
+                        ),
                       ),
+                      style: const TextStyle(fontSize: 16),
                     ),
-                    const SizedBox(height: 10),
-
+                    const SizedBox(height: 16),
                     TextField(
                       controller: taController,
                       decoration: const InputDecoration(
                         labelText: 'TA',
                         border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 12,
+                        ),
                       ),
                       keyboardType: TextInputType.number,
+                      style: const TextStyle(fontSize: 16),
                     ),
-                    const SizedBox(height: 10),
-
-                    // Show "Next Date" only for Pending
+                    const SizedBox(height: 16),
                     if (selectedStatus == 'Pending') ...[
                       Row(
                         children: [
@@ -229,11 +267,12 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.calendar_today),
+                            icon: const Icon(Icons.calendar_today, size: 24),
                             onPressed: _pickDate,
                           ),
                         ],
                       ),
+                      const SizedBox(height: 10),
                     ],
                   ],
                 ),
@@ -241,28 +280,50 @@ class _HomePageState extends State<HomePage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: const Text('Cancel', style: TextStyle(fontSize: 16)),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    // Validate fields
+                    if (selectedStatus == null ||
+                        remarksController.text.isEmpty ||
+                        serviceChargeController.text.isEmpty ||
+                        receiptsNoController.text.isEmpty ||
+                        selectedPaymentType == null ||
+                        paymentDescriptionController.text.isEmpty ||
+                        taController.text.isEmpty ||
+                        (selectedStatus == 'Pending' &&
+                            selectedNextDate == null)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Please fill all fields before confirming.',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(context); // Close the dialog
+
+                    final Map<String, dynamic> additionalData = {
+                      'remarks': remarksController.text,
+                      'serviceCharge': serviceChargeController.text,
+                      'receiptsNo': receiptsNoController.text,
+                      'paymentType': selectedPaymentType,
+                      'paymentDescription': paymentDescriptionController.text,
+                      'ta': taController.text,
+                      if (selectedStatus == 'Pending')
+                        'nextDate': selectedNextDate!.toIso8601String(),
+                    };
+
                     _confirmUpdateStatus(
                       index,
                       selectedStatus!,
-                      additionalData: {
-                        'remarks': remarksController.text,
-                        'serviceCharge': serviceChargeController.text,
-                        'receiptsNo': receiptsNoController.text,
-                        'paymentType': selectedPaymentType,
-                        'paymentDescription': paymentDescriptionController.text,
-                        'ta': taController.text,
-                        // Only include nextDate if status is Pending
-                        if (selectedStatus == 'Pending')
-                          'nextDate': selectedNextDate?.toIso8601String(),
-                      },
+                      additionalData: additionalData,
                     );
                   },
-                  child: const Text('Update'),
+                  child: const Text('Update', style: TextStyle(fontSize: 16)),
                 ),
               ],
             );
@@ -272,51 +333,116 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // void _confirmUpdateStatus(int index, String newStatus) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text('Confirm Change'),
-  //       content: Text('Do you want to update the status to "$newStatus"?'),
-  //       actions: [
-  //         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-  //         ElevatedButton(
-  //           onPressed: () {
-  //             setState(() => _staffData[index]['Status'] = newStatus);
-  //             Navigator.pop(context);
-  //           },
-  //           child: const Text('Confirm'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  void _confirmUpdateStatus(
+    int index,
+    String status, {
+    required Map<String, dynamic> additionalData,
+  }) {
+    if (additionalData['remarks'] == '' ||
+        additionalData['serviceCharge'] == '' ||
+        additionalData['receiptsNo'] == '' ||
+        additionalData['paymentType'] == null ||
+        additionalData['paymentDescription'] == '' ||
+        additionalData['ta'] == '' ||
+        (status == 'Pending' && additionalData['nextDate'] == null)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      return;
+    }
 
-  void _confirmUpdateStatus(int index, String status, {Map<String, dynamic>? additionalData}) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Update'),
-        content: Text('Do you want to update the status to "$status"?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _staffData[index]['Status'] = status;
-                if (additionalData != null) {
-                  _staffData[index].addAll(additionalData);
-                }
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Confirm'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Confirm Update'),
+            content: Text('Do you want to update the status to "$status"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context); // Close confirmation dialog
+
+                  final ticket = _staffData[index]['ticket'];
+                  final body = {
+                    'ticket': ticket.toString(),
+                    'Status': status,
+                    'Next Date':
+                        additionalData['nextDate']?.split('T').first ?? '',
+                    'Remarks': additionalData['remarks'],
+                    'Service Charge': additionalData['serviceCharge'],
+                    'Receipts No': additionalData['receiptsNo'],
+                    'Payments Type': additionalData['paymentType'],
+                    'Pay Description': additionalData['paymentDescription'],
+                    'TA': additionalData['ta'],
+                    'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
+                  };
+
+                  try {
+                    final response = await http.post(
+                      Uri.parse(
+                        'https://neptonglobal.co.in/Master/schedule/save_sch.php',
+                      ),
+                      headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                      },
+                      body: body,
+                    );
+
+                    if (response.statusCode == 200 &&
+                        response.body.contains('Success')) {
+                      setState(() {
+                        _staffData[index]['Status'] = status;
+                        _staffData[index].addAll(additionalData);
+                      });
+
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('Success'),
+                              content: const Text(
+                                'Status updated successfully!',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                      );
+                    } else {
+                      throw Exception('Failed to save data');
+                    }
+                  } catch (e) {
+                    showDialog(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('Error'),
+                            content: Text(
+                              'Failed to update status. ${e.toString()}',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                    );
+                  }
+                },
+                child: const Text('Confirm'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
-
 
   Future<void> _generateAndPrintPdf() async {
     final pdf = pw.Document();
@@ -324,33 +450,39 @@ class _HomePageState extends State<HomePage> {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        build: (context) => [
-          pw.Header(level: 0, child: pw.Text("Schedule for ${DateFormat('yyyy-MM-dd').format(_selectedDate)}")),
-          ..._staffData.map((staff) {
-            return pw.Container(
-              margin: const pw.EdgeInsets.only(bottom: 12),
-              padding: const pw.EdgeInsets.all(8),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey),
-                borderRadius: pw.BorderRadius.circular(8),
+        build:
+            (context) => [
+              pw.Header(
+                level: 0,
+                child: pw.Text(
+                  "Schedule for ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
+                ),
               ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  _pdfRow("Ticket No", staff['ticket']),
-                  _pdfRow("Date", staff['date']),
-                  _pdfRow("NEP ID", staff['nepid']),
-                  _pdfRow("Customer", staff['cust']),
-                  _pdfRow("Description", staff['desp']),
-                  _pdfRow("Mobile", staff['mob']),
-                  _pdfRow("Area", staff['area']),
-                  _pdfRow("Service Type", staff['service_type']),
-                  _pdfRow("Status", staff['status']),
-                ],
-              ),
-            );
-          }).toList(),
-        ],
+              ..._staffData.map((staff) {
+                return pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 12),
+                  padding: const pw.EdgeInsets.all(8),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.grey),
+                    borderRadius: pw.BorderRadius.circular(8),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _pdfRow("Ticket No", staff['ticket']),
+                      _pdfRow("Date", staff['date']),
+                      _pdfRow("NEP ID", staff['nepid']),
+                      _pdfRow("Customer", staff['cust']),
+                      _pdfRow("Description", staff['desp']),
+                      _pdfRow("Mobile", staff['mob']),
+                      _pdfRow("Area", staff['area']),
+                      _pdfRow("Service Type", staff['service_type']),
+                      _pdfRow("Status", staff['status']),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
       ),
     );
 
@@ -363,7 +495,13 @@ class _HomePageState extends State<HomePage> {
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Container(width: 100, child: pw.Text("$title:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+          pw.Container(
+            width: 100,
+            child: pw.Text(
+              "$title:",
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            ),
+          ),
           pw.Expanded(child: pw.Text(value ?? '')),
         ],
       ),
@@ -374,15 +512,32 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
     final empId = _empIdController.text.trim();
+    Future<void> _makePhoneCall(String phoneNumber) async {
+      final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch dialer for $phoneNumber')),
+        );
+      }
+    }
 
-    Widget _buildInfoRow(String title, String value) {
+    Widget _buildInfoRow(String title, dynamic value) {
       Color? statusColor;
       if (title.toLowerCase() == 'status') {
         switch (value.toUpperCase()) {
-          case 'PENDING': statusColor = Colors.orange; break;
-          case 'CANCEL': statusColor = Colors.red; break;
-          case 'COMPLETED': statusColor = Colors.green; break;
-          default: statusColor = Colors.black87;
+          case 'PENDING':
+            statusColor = Colors.orange;
+            break;
+          case 'CANCEL':
+            statusColor = Colors.red;
+            break;
+          case 'COMPLETED':
+            statusColor = Colors.green;
+            break;
+          default:
+            statusColor = Colors.black87;
         }
       }
       return Padding(
@@ -390,8 +545,32 @@ class _HomePageState extends State<HomePage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(width: 110, child: Text('$title:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5))),
-            Expanded(child: Text(value, style: TextStyle(fontSize: 14.5, color: statusColor ?? Colors.black87, fontWeight: title.toLowerCase() == 'status' ? FontWeight.bold : FontWeight.normal)))
+            SizedBox(
+              width: 110,
+              child: Text(
+                '$title:',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.5,
+                ),
+              ),
+            ),
+            Expanded(
+              child:
+                  value is Widget
+                      ? value
+                      : Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          color: statusColor ?? Colors.black87,
+                          fontWeight:
+                              title.toLowerCase() == 'status'
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                        ),
+                      ),
+            ),
           ],
         ),
       );
@@ -404,8 +583,13 @@ class _HomePageState extends State<HomePage> {
           onPressed: () => _showUpdateDialog(index),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            textStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
@@ -419,7 +603,10 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFF7453A1),
-        title: Text("Employee: $empId", style: const TextStyle(color: Colors.white)),
+        title: Text(
+          "Employee: $empId",
+          style: const TextStyle(color: Colors.white),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
@@ -431,14 +618,21 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: const Text("Logout"),
-                  content: const Text("Do you really want to log out?"),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
-                    TextButton(onPressed: () => logout(context), child: const Text("Logout")),
-                  ],
-                ),
+                builder:
+                    (BuildContext context) => AlertDialog(
+                      title: const Text("Logout"),
+                      content: const Text("Do you really want to log out?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text("Cancel"),
+                        ),
+                        TextButton(
+                          onPressed: () => logout(context),
+                          child: const Text("Logout"),
+                        ),
+                      ],
+                    ),
               );
             },
           ),
@@ -450,52 +644,95 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            Text("Select Date", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+            Text(
+              "Select Date",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _pickDate,
               icon: const Icon(Icons.calendar_today, size: 18),
               label: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 side: const BorderSide(color: Color(0xFF435EA6)),
               ),
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: _staffData.isEmpty
-                  ? const Center(child: Text("No schedule found"))
-                  : ListView.builder(
-                itemCount: _staffData.length,
-                itemBuilder: (context, index) {
-                  final staff = _staffData[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildInfoRow('Ticket No', staff['ticket']),
-                          _buildInfoRow('Date', staff['date']),
-                          _buildInfoRow('NEP ID', staff['nepid']),
-                          _buildInfoRow('Customer', staff['cust']),
-                          _buildInfoRow('Description', staff['desp']),
-                          _buildInfoRow('Mobile', staff['mob']),
-                          _buildInfoRow('Area', staff['area']),
-                          _buildInfoRow('Service Type', staff['service_type']),
-                          _buildInfoRow('Status', staff['status']),
-                          const SizedBox(height: 8),
-                          _buildStatusButton(index),
-                        ],
+              child:
+                  _staffData.isEmpty
+                      ? const Center(child: Text("No schedule found"))
+                      : ListView.builder(
+                        itemCount: _staffData.length,
+                        itemBuilder: (context, index) {
+                          final staff = _staffData[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildInfoRow('Ticket No', staff['ticket']),
+                                  _buildInfoRow('Date', staff['date']),
+                                  _buildInfoRow('NEP ID', staff['nepid']),
+                                  _buildInfoRow('Customer', staff['cust']),
+                                  _buildInfoRow('Description', staff['desp']),
+                                  // 👇 Replaced mobile row with clickable phone
+                                  _buildInfoRow(
+                                    'Mobile',
+                                    GestureDetector(
+                                      onTap: () => _makePhoneCall(staff['mob']),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            staff['mob'],
+                                            style: const TextStyle(
+                                              color: Colors.blue,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              fontSize: 14.5,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Icon(
+                                            Icons.phone,
+                                            size: 18,
+                                            color: Colors.green,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  _buildInfoRow('Area', staff['area']),
+                                  _buildInfoRow(
+                                    'Service Type',
+                                    staff['service_type'],
+                                  ),
+                                  _buildInfoRow('Status', staff['status']),
+                                  const SizedBox(height: 8),
+                                  _buildStatusButton(index),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-              ),
             ),
           ],
         ),
