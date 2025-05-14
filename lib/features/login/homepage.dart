@@ -9,6 +9,7 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+
 class HomePage extends StatefulWidget {
   final String empId;
   const HomePage({Key? key, required this.empId}) : super(key: key);
@@ -96,14 +97,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  ///update function
   void _showUpdateDialog(int index) {
     String? selectedStatus = _staffData[index]['Status'];
     final TextEditingController remarksController = TextEditingController();
-    final TextEditingController serviceChargeController =
-        TextEditingController();
+    final TextEditingController serviceChargeController = TextEditingController();
     final TextEditingController receiptsNoController = TextEditingController();
-    final TextEditingController paymentDescriptionController =
-        TextEditingController();
+    final TextEditingController paymentDescriptionController = TextEditingController();
     final TextEditingController taController = TextEditingController();
 
     String? selectedPaymentType;
@@ -129,30 +129,18 @@ class _HomePageState extends State<HomePage> {
             }
 
             return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              title: const Text(
-                'Update Status',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: const Text('Update Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ...['Completed', 'Pending', 'Cancel'].map((status) {
                       return RadioListTile<String>(
-                        title: Text(
-                          status,
-                          style: const TextStyle(fontSize: 16),
-                        ),
+                        title: Text(status, style: const TextStyle(fontSize: 16)),
                         value: status,
                         groupValue: selectedStatus,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedStatus = value;
-                          });
-                        },
+                        onChanged: (value) => setState(() => selectedStatus = value),
                       );
                     }).toList(),
                     const Divider(height: 30),
@@ -161,10 +149,7 @@ class _HomePageState extends State<HomePage> {
                       decoration: const InputDecoration(
                         labelText: 'Remarks',
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                       ),
                       style: const TextStyle(fontSize: 16),
                       maxLines: 2,
@@ -175,10 +160,7 @@ class _HomePageState extends State<HomePage> {
                       decoration: const InputDecoration(
                         labelText: 'Service Charge',
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                       ),
                       keyboardType: TextInputType.number,
                       style: const TextStyle(fontSize: 16),
@@ -189,41 +171,24 @@ class _HomePageState extends State<HomePage> {
                       decoration: const InputDecoration(
                         labelText: 'Receipts No',
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                       ),
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: selectedPaymentType,
-                      items:
-                          ['Cash', 'Transfer', 'Cheque'].map((type) {
-                            return DropdownMenuItem(
-                              value: type,
-                              child: Text(
-                                type,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentType = value;
-                        });
-                      },
+                      items: ['Cash', 'Transfer', 'Cheque'].map((type) {
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Text(type, style: const TextStyle(fontSize: 16, color: Colors.black)),
+                        );
+                      }).toList(),
+                      onChanged: (value) => setState(() => selectedPaymentType = value),
                       decoration: const InputDecoration(
                         labelText: 'Payment Type',
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                       ),
                       style: const TextStyle(fontSize: 16),
                     ),
@@ -233,10 +198,7 @@ class _HomePageState extends State<HomePage> {
                       decoration: const InputDecoration(
                         labelText: 'Payment Description',
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                       ),
                       style: const TextStyle(fontSize: 16),
                     ),
@@ -246,10 +208,7 @@ class _HomePageState extends State<HomePage> {
                       decoration: const InputDecoration(
                         labelText: 'TA',
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 12,
-                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                       ),
                       keyboardType: TextInputType.number,
                       style: const TextStyle(fontSize: 16),
@@ -283,8 +242,8 @@ class _HomePageState extends State<HomePage> {
                   child: const Text('Cancel', style: TextStyle(fontSize: 16)),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    // Validate fields
+                  onPressed: () async {
+                    // Validation
                     if (selectedStatus == null ||
                         remarksController.text.isEmpty ||
                         serviceChargeController.text.isEmpty ||
@@ -292,36 +251,80 @@ class _HomePageState extends State<HomePage> {
                         selectedPaymentType == null ||
                         paymentDescriptionController.text.isEmpty ||
                         taController.text.isEmpty ||
-                        (selectedStatus == 'Pending' &&
-                            selectedNextDate == null)) {
+                        (selectedStatus == 'Pending' && selectedNextDate == null)) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Please fill all fields before confirming.',
-                          ),
-                        ),
+                        const SnackBar(content: Text('Please fill all fields before confirming.')),
                       );
                       return;
                     }
 
-                    Navigator.pop(context); // Close the dialog
+                    if (_staffData[index]['Status'] == selectedStatus) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('This status is already updated.')),
+                      );
+                      return;
+                    }
 
-                    final Map<String, dynamic> additionalData = {
-                      'remarks': remarksController.text,
-                      'serviceCharge': serviceChargeController.text,
-                      'receiptsNo': receiptsNoController.text,
-                      'paymentType': selectedPaymentType,
-                      'paymentDescription': paymentDescriptionController.text,
-                      'ta': taController.text,
-                      if (selectedStatus == 'Pending')
-                        'nextDate': selectedNextDate!.toIso8601String(),
+                    Navigator.pop(context); // Close dialog
+
+                    // Show loading
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) => const Center(child: CircularProgressIndicator()),
+                    );
+
+                    final body = {
+                      'ticket': _staffData[index]['ticket'].toString(),
+                      'Status': selectedStatus,
+                      'Next Date': selectedNextDate?.toIso8601String().split('T').first ?? '',
+                      'Remarks': remarksController.text,
+                      'Service Charge': serviceChargeController.text,
+                      'Receipts No': receiptsNoController.text,
+                      'Payments Type': selectedPaymentType,
+                      'Pay Description': paymentDescriptionController.text,
+                      'TA': taController.text,
+                      'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
                     };
 
-                    _confirmUpdateStatus(
-                      index,
-                      selectedStatus!,
-                      additionalData: additionalData,
-                    );
+                    try {
+                      final response = await http.post(
+                        Uri.parse('https://neptonglobal.co.in/Master/schedule/save_sch.php'),
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: body,
+                      );
+
+                      Navigator.pop(context); // Close loading
+
+                      if (response.statusCode == 200 &&
+                          response.body.trim().toLowerCase() == 'success') {
+                        setState(() {
+                          _staffData[index]['Status'] = selectedStatus;
+                          _staffData[index].addAll(body);
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Status updated successfully!')),
+                        );
+                      } else {
+                        throw Exception('Failed to save data');
+                      }
+                    } catch (e) {
+                      Navigator.pop(context); // Close loading if still open
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Error'),
+                          content: Text('Failed to update status. ${e.toString()}'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                   },
                   child: const Text('Update', style: TextStyle(fontSize: 16)),
                 ),
@@ -332,117 +335,7 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-
-  void _confirmUpdateStatus(
-    int index,
-    String status, {
-    required Map<String, dynamic> additionalData,
-  }) {
-    if (additionalData['remarks'] == '' ||
-        additionalData['serviceCharge'] == '' ||
-        additionalData['receiptsNo'] == '' ||
-        additionalData['paymentType'] == null ||
-        additionalData['paymentDescription'] == '' ||
-        additionalData['ta'] == '' ||
-        (status == 'Pending' && additionalData['nextDate'] == null)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Confirm Update'),
-            content: Text('Do you want to update the status to "$status"?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context); // Close confirmation dialog
-
-                  final ticket = _staffData[index]['ticket'];
-                  final body = {
-                    'ticket': ticket.toString(),
-                    'Status': status,
-                    'Next Date':
-                        additionalData['nextDate']?.split('T').first ?? '',
-                    'Remarks': additionalData['remarks'],
-                    'Service Charge': additionalData['serviceCharge'],
-                    'Receipts No': additionalData['receiptsNo'],
-                    'Payments Type': additionalData['paymentType'],
-                    'Pay Description': additionalData['paymentDescription'],
-                    'TA': additionalData['ta'],
-                    'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
-                  };
-
-                  try {
-                    final response = await http.post(
-                      Uri.parse(
-                        'https://neptonglobal.co.in/Master/schedule/save_sch.php',
-                      ),
-                      headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                      },
-                      body: body,
-                    );
-
-                    if (response.statusCode == 200 &&
-                        response.body.contains('Success')) {
-                      setState(() {
-                        _staffData[index]['Status'] = status;
-                        _staffData[index].addAll(additionalData);
-                      });
-
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: const Text('Success'),
-                              content: const Text(
-                                'Status updated successfully!',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            ),
-                      );
-                    } else {
-                      throw Exception('Failed to save data');
-                    }
-                  } catch (e) {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            title: const Text('Error'),
-                            content: Text(
-                              'Failed to update status. ${e.toString()}',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          ),
-                    );
-                  }
-                },
-                child: const Text('Confirm'),
-              ),
-            ],
-          ),
-    );
-  }
+  ///update function
 
   Future<void> _generateAndPrintPdf() async {
     final pdf = pw.Document();
@@ -596,6 +489,7 @@ class _HomePageState extends State<HomePage> {
           child: const Text('UPDATE'),
         ),
       );
+
     }
 
     return Scaffold(

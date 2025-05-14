@@ -64,16 +64,7 @@ class _LoginPageState extends State<LoginPage> {
             );
           }
 
-          // if (password == decodedPassword) {
-          //   final prefs = await SharedPreferences.getInstance();
-          //   await prefs.setString('username', username);
-          //   await prefs.setString('password', password);
-          //   await prefs.setBool('isLoggedIn', true);
-          //   Navigator.pushReplacement(
-          //     context,
-          //     MaterialPageRoute(builder: (_) => HomePage(empId: empID)),
-          //   );
-          // }
+
           else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
