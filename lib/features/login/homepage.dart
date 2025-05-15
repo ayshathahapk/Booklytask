@@ -79,24 +79,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl$_saveScheduleEndpoint'),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {'json_val': jsonEncode(updateData)},
-      );
-
-      if (response.statusCode == 200 && response.body.contains('Success')) {
-        return true;
-      }
-      throw Exception('Failed to update status: ${response.body}');
-    } catch (e) {
-      _showErrorSnackbar('Failed to update status: $e');
-      return false;
-    }
-  }
-
   // UI Helper Functions
   void _showErrorSnackbar(String message) {
     if (!mounted) return;
@@ -160,7 +142,25 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Dialog Functions
+  Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl$_saveScheduleEndpoint'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'json_val': jsonEncode(updateData)},
+      );
+
+      if (response.statusCode == 200 && response.body.contains('Success')) {
+        return true;
+      }
+      throw Exception('Failed to update status: ${response.body}');
+    } catch (e) {
+      _showErrorSnackbar('Failed to update status: $e');
+      return false;
+    }
+  }
+
+
   void _showUpdateDialog(int index) {
     String? selectedStatus = _staffData[index]['Status'];
     final TextEditingController remarksController = TextEditingController();
@@ -251,55 +251,60 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-
   bool _validateUpdateFields(
-    String? status,
-    TextEditingController remarks,
-    TextEditingController serviceCharge,
-    TextEditingController receiptsNo,
-    String? paymentType,
-    TextEditingController paymentDescription,
-    TextEditingController ta,
-    DateTime? nextDate,
-  ) {
-    if (status == null ||
-        remarks.text.isEmpty ||
-        serviceCharge.text.isEmpty ||
-        receiptsNo.text.isEmpty ||
-        paymentType == null ||
-        paymentDescription.text.isEmpty ||
-        ta.text.isEmpty ||
-        (status == 'Pending' && nextDate == null)) {
-      _showErrorSnackbar('Please fill all required fields');
+      String? status,
+      TextEditingController remarks,
+      TextEditingController serviceCharge,
+      TextEditingController receiptsNo,
+      String? paymentType,
+      TextEditingController paymentDescription,
+      TextEditingController ta,
+      DateTime? nextDate,
+      ) {
+    if (status == null) {
+      _showErrorSnackbar('Please select a status');
       return false;
     }
+
+    if (status == 'Pending' && nextDate == null) {
+      _showErrorSnackbar('Next Date is required when status is Pending');
+      return false;
+    }
+
     return true;
   }
 
   Map<String, dynamic> _prepareUpdateData(
-    int index,
-    String status,
-    String remarks,
-    String serviceCharge,
-    String receiptsNo,
-    String paymentType,
-    String paymentDescription,
-    String ta,
-    DateTime? nextDate,
-  ) {
+      int index,
+      String status,
+      String remarks,
+      String serviceCharge,
+      String receiptsNo,
+      String paymentType,
+      String paymentDescription,
+      String ta,
+      DateTime? nextDate,
+      ) {
+    final bool isPending = status == 'Pending';
+
     return {
       'ticket': _staffData[index]['ticket'].toString(),
       'Status': status,
-      'Next Date': nextDate?.toIso8601String().split('T').first ?? '',
-      'Remarks': remarks,
-      'Service Charge': serviceCharge,
-      'Receipts No': receiptsNo,
-      'Payments Type': paymentType,
-      'Pay Description': paymentDescription,
-      'TA': ta,
+      'Next Date': isPending && nextDate != null
+          ? nextDate.toIso8601String().split('T').first
+          : '',
+      // All other fields sent as empty strings regardless of input
+      'Remarks': '',
+      'Service Charge': '',
+      'Receipts No': '',
+      'Payments Type': '',
+      'Pay Description': '',
+      'TA': '',
       'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
     };
   }
+
+
 
   void _showSuccessDialog() {
     showDialog(
@@ -465,3 +470,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class UpdateDialog extends StatelessWidget {
+class UpdateDialog extends StatefulWidget {
   final String? selectedStatus;
   final TextEditingController remarksController;
   final TextEditingController serviceChargeController;
@@ -31,10 +31,13 @@ class UpdateDialog extends StatelessWidget {
     required this.onUpdate,
   }) : super(key: key);
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'Select Next Date';
-    return DateFormat('yyyy-MM-dd').format(date);
-  }
+  @override
+  State<UpdateDialog> createState() => _UpdateDialogState();
+}
+
+class _UpdateDialogState extends State<UpdateDialog> {
+
+  String? statusss;
 
   @override
   Widget build(BuildContext context) {
@@ -57,93 +60,19 @@ class UpdateDialog extends StatelessWidget {
                   style: const TextStyle(fontSize: 16),
                 ),
                 value: status,
-                groupValue: selectedStatus,
-                onChanged: onStatusChanged,
+                groupValue: widget.selectedStatus,
+                onChanged: (value) {
+                  widget.onStatusChanged(value??'');
+                  statusss=value!;
+                  setState(() {
+
+                  });
+                },
               );
             }).toList(),
-            const Divider(height: 30),
-            TextField(
-              controller: remarksController,
-              decoration: const InputDecoration(
-                labelText: 'Remarks',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 12,
-                ),
-              ),
-              style: const TextStyle(fontSize: 16),
-              maxLines: 2,
-            ),
             const SizedBox(height: 16),
             TextField(
-              controller: serviceChargeController,
-              decoration: const InputDecoration(
-                labelText: 'Service Charge',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 12,
-                ),
-              ),
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: receiptsNoController,
-              decoration: const InputDecoration(
-                labelText: 'Receipts No',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 12,
-                ),
-              ),
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: selectedPaymentType,
-              items: ['Cash', 'Transfer', 'Cheque'].map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(
-                    type,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                  ),
-                );
-              }).toList(),
-              onChanged: onPaymentTypeChanged,
-              decoration: const InputDecoration(
-                labelText: 'Payment Type',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 12,
-                ),
-              ),
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: paymentDescriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Payment Description',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 12,
-                ),
-              ),
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: taController,
+              controller: widget.taController,
               decoration: const InputDecoration(
                 labelText: 'TA',
                 border: OutlineInputBorder(),
@@ -157,6 +86,87 @@ class UpdateDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextField(
+              controller: widget.serviceChargeController,
+              decoration: const InputDecoration(
+                labelText: 'Service Charge',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+              ),
+              keyboardType: TextInputType.number,
+              style: const TextStyle(fontSize: 16),
+            ),
+            const Divider(height: 30),
+            TextField(
+              controller: widget.remarksController,
+              decoration: const InputDecoration(
+                labelText: 'Remarks',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+              ),
+              style: const TextStyle(fontSize: 16),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: widget.receiptsNoController,
+              decoration: const InputDecoration(
+                labelText: 'Receipts No',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+              ),
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: widget.selectedPaymentType,
+              items: ['Cash', 'Transfer', 'Cheque'].map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text(
+                    type,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: widget.onPaymentTypeChanged,
+              decoration: const InputDecoration(
+                labelText: 'Payment Type',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+              ),
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: widget.paymentDescriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Payment Description',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+              ),
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            if(statusss=='Pending')
+            TextField(
               onTap: () async {
                 final pickedDate = await showDatePicker(
                   context: context,
@@ -165,7 +175,7 @@ class UpdateDialog extends StatelessWidget {
                   lastDate: DateTime(2100),
                 );
                 if (pickedDate != null) {
-                  onPickDate();
+                  widget.onPickDate();
                 }
               },
               readOnly: true,
@@ -179,8 +189,8 @@ class UpdateDialog extends StatelessWidget {
                 suffixIcon: const Icon(Icons.calendar_today),
               ),
               controller: TextEditingController(
-                text: selectedNextDate != null 
-                    ? DateFormat('yyyy-MM-dd').format(selectedNextDate!)
+                text: widget.selectedNextDate != null
+                    ? DateFormat('yyyy-MM-dd').format(widget.selectedNextDate!)
                     : 'Select Next Date',
               ),
               style: const TextStyle(fontSize: 16),
@@ -196,10 +206,13 @@ class UpdateDialog extends StatelessWidget {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: onUpdate,
+          onPressed: widget.onUpdate,
           child: const Text('Update'),
         ),
       ],
     );
   }
-} 
+}
+
+
+
