@@ -293,7 +293,6 @@ class _HomePageState extends State<HomePage> {
       'Next Date': isPending && nextDate != null
           ? nextDate.toIso8601String().split('T').first
           : '',
-      // All other fields sent as empty strings regardless of input
       'Remarks': '',
       'Service Charge': '',
       'Receipts No': '',
