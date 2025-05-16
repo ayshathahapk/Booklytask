@@ -329,10 +329,11 @@ class _HomePageState extends State<HomePage> {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {'json_val': jsonEncode(updateData)},
       );
-
+print("a");
       if (response.statusCode == 200 && response.body.contains('Success')) {
         return true;
       }
+      print("b");
       throw Exception('Failed to update status: ${response.body}');
     } catch (e) {
       _showErrorSnackbar('Failed to update status: $e');
@@ -341,12 +342,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showUpdateDialog(int index) {
-    String? selectedStatus = _staffData[index]['Status'];
     final TextEditingController remarksController = TextEditingController();
     final TextEditingController serviceChargeController = TextEditingController();
     final TextEditingController receiptsNoController = TextEditingController();
     final TextEditingController paymentDescriptionController = TextEditingController();
     final TextEditingController taController = TextEditingController();
+    String? selectedStatus = _staffData[index]['Status'];
     String? selectedPaymentType;
     DateTime? selectedNextDate;
 
@@ -362,13 +363,14 @@ class _HomePageState extends State<HomePage> {
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2100),
               );
+              print("c");
               if (pickedDate != null) {
                 setState(() {
                   selectedNextDate = pickedDate;
                 });
               }
             }
-
+print("d");
             return UpdateDialog(
               selectedStatus: selectedStatus,
               remarksController: remarksController,
@@ -389,14 +391,16 @@ class _HomePageState extends State<HomePage> {
                 });
               },
               onPickDate: _pickNextDate,
+
               onUpdate: () async {
+                print("f");
                 if (!_validateUpdateFields(
                   selectedStatus,
                   selectedNextDate,
                 )) {
                   return;
                 }
-
+print("g");
                 final updateData = _prepareUpdateData(
                   index,
                   selectedStatus!,
@@ -410,11 +414,13 @@ class _HomePageState extends State<HomePage> {
                 );
 
                 final success = await _updateScheduleStatus(updateData);
+                print("h");
                 if (success && mounted) {
                   Navigator.of(context).pop();
                   await _fetchScheduleData();
                   _showSuccessDialog();
                 }
+                print("i");
               },
             );
           },
@@ -427,16 +433,17 @@ class _HomePageState extends State<HomePage> {
       String? status,
       DateTime? nextDate,
       ) {
+    print("j");
     if (status == null) {
       _showErrorSnackbar('Please select a status');
       return false;
     }
-
+print("k");
     if (status == 'Pending' && nextDate == null) {
       _showErrorSnackbar('Next Date is required when status is Pending');
       return false;
     }
-
+print("l");
     return true;
   }
 
@@ -452,6 +459,7 @@ class _HomePageState extends State<HomePage> {
       String ta,
       DateTime? nextDate,
       ) {
+    print("m");
     return {
       'ticket': _staffData[index]['ticket'].toString(),
       'Status': status,
@@ -463,7 +471,7 @@ class _HomePageState extends State<HomePage> {
       'Pay Description': paymentDescription,
       'TA': ta,
       'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
-    };
+  };
   }
 
   void _showSuccessDialog() {
