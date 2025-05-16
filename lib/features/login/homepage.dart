@@ -141,6 +141,186 @@ class _HomePageState extends State<HomePage> {
       _showErrorSnackbar('Failed to logout: $e');
     }
   }
+  //
+  // Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse('$_baseUrl$_saveScheduleEndpoint'),
+  //       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+  //       body: {'json_val': jsonEncode(updateData)},
+  //     );
+  //
+  //     if (response.statusCode == 200 && response.body.contains('Success')) {
+  //       return true;
+  //     }
+  //     throw Exception('Failed to update status: ${response.body}');
+  //   } catch (e) {
+  //     _showErrorSnackbar('Failed to update status: $e');
+  //     return false;
+  //   }
+  // }
+  //
+  //
+  // void _showUpdateDialog(int index) {
+  //   String? selectedStatus = _staffData[index]['Status'];
+  //   final TextEditingController remarksController = TextEditingController();
+  //   final TextEditingController serviceChargeController =
+  //       TextEditingController();
+  //   final TextEditingController receiptsNoController = TextEditingController();
+  //   final TextEditingController paymentDescriptionController =
+  //       TextEditingController();
+  //   final TextEditingController taController = TextEditingController();
+  //   String? selectedPaymentType;
+  //   DateTime? selectedNextDate;
+  //
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return StatefulBuilder(
+  //         builder: (context, setState) {
+  //           Future<void> _pickNextDate() async {
+  //             final pickedDate = await showDatePicker(
+  //               context: context,
+  //               initialDate: DateTime.now(),
+  //               firstDate: DateTime(2000),
+  //               lastDate: DateTime(2100),
+  //             );
+  //             if (pickedDate != null) {
+  //               setState(() {
+  //                 selectedNextDate = pickedDate;
+  //               });
+  //             }
+  //           }
+  //
+  //           return UpdateDialog(
+  //             selectedStatus: selectedStatus,
+  //             remarksController: remarksController,
+  //             serviceChargeController: serviceChargeController,
+  //             receiptsNoController: receiptsNoController,
+  //             paymentDescriptionController: paymentDescriptionController,
+  //             taController: taController,
+  //             selectedPaymentType: selectedPaymentType,
+  //             selectedNextDate: selectedNextDate,
+  //             onStatusChanged: (value) {
+  //               setState(() {
+  //                 selectedStatus = value;
+  //               });
+  //             },
+  //             onPaymentTypeChanged: (value) {
+  //               setState(() {
+  //                 selectedPaymentType = value;
+  //               });
+  //             },
+  //             onPickDate: _pickNextDate,
+  //             onUpdate: () async {
+  //               if (!_validateUpdateFields(
+  //                 selectedStatus,
+  //                 remarksController,
+  //                 serviceChargeController,
+  //                 receiptsNoController,
+  //                 selectedPaymentType,
+  //                 paymentDescriptionController,
+  //                 taController,
+  //                 selectedNextDate,
+  //               )) {
+  //                 return;
+  //               }
+  //
+  //               final updateData = _prepareUpdateData(
+  //                 index,
+  //                 selectedStatus!,
+  //                 remarksController.text,
+  //                 serviceChargeController.text,
+  //                 receiptsNoController.text,
+  //                 selectedPaymentType!,
+  //                 paymentDescriptionController.text,
+  //                 taController.text,
+  //                 selectedNextDate,
+  //               );
+  //
+  //               final success = await _updateScheduleStatus(updateData);
+  //               if (success && mounted) {
+  //                 Navigator.of(context).pop();
+  //                 await _fetchScheduleData();
+  //                 _showSuccessDialog();
+  //               }
+  //             },
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
+  // bool _validateUpdateFields(
+  //     String? status,
+  //     TextEditingController remarks,
+  //     TextEditingController serviceCharge,
+  //     TextEditingController receiptsNo,
+  //     String? paymentType,
+  //     TextEditingController paymentDescription,
+  //     TextEditingController ta,
+  //     DateTime? nextDate,
+  //     ) {
+  //   if (status == null) {
+  //     _showErrorSnackbar('Please select a status');
+  //     return false;
+  //   }
+  //
+  //   if (status == 'Pending' && nextDate == null) {
+  //     _showErrorSnackbar('Next Date is required when status is Pending');
+  //     return false;
+  //   }
+  //
+  //   return true;
+  // }
+  //
+  // Map<String, dynamic> _prepareUpdateData(
+  //     int index,
+  //     String status,
+  //     String remarks,
+  //     String serviceCharge,
+  //     String receiptsNo,
+  //     String paymentType,
+  //     String paymentDescription,
+  //     String ta,
+  //     DateTime? nextDate,
+  //     ) {
+  //   final bool isPending = status == 'Pending';
+  //
+  //   return {
+  //     'ticket': _staffData[index]['ticket'].toString(),
+  //     'Status': status,
+  //     'Next Date': isPending && nextDate != null
+  //         ? nextDate.toIso8601String().split('T').first
+  //         : '',
+  //     'Remarks': '',
+  //     'Service Charge': '',
+  //     'Receipts No': '',
+  //     'Payments Type': '',
+  //     'Pay Description': '',
+  //     'TA': '',
+  //     'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
+  //   };
+  // }
+  //
+  //
+  //
+  // void _showSuccessDialog() {
+  //   showDialog(
+  //     context: context,
+  //     builder:
+  //         (context) => AlertDialog(
+  //           title: const Text('Success'),
+  //           content: const Text('Status updated successfully!'),
+  //           actions: [
+  //             TextButton(
+  //               onPressed: () => Navigator.pop(context),
+  //               child: const Text('OK'),
+  //             ),
+  //           ],
+  //         ),
+  //   );
+  // }
 
   Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
     try {
@@ -160,15 +340,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
   void _showUpdateDialog(int index) {
     String? selectedStatus = _staffData[index]['Status'];
     final TextEditingController remarksController = TextEditingController();
-    final TextEditingController serviceChargeController =
-        TextEditingController();
+    final TextEditingController serviceChargeController = TextEditingController();
     final TextEditingController receiptsNoController = TextEditingController();
-    final TextEditingController paymentDescriptionController =
-        TextEditingController();
+    final TextEditingController paymentDescriptionController = TextEditingController();
     final TextEditingController taController = TextEditingController();
     String? selectedPaymentType;
     DateTime? selectedNextDate;
@@ -215,12 +392,6 @@ class _HomePageState extends State<HomePage> {
               onUpdate: () async {
                 if (!_validateUpdateFields(
                   selectedStatus,
-                  remarksController,
-                  serviceChargeController,
-                  receiptsNoController,
-                  selectedPaymentType,
-                  paymentDescriptionController,
-                  taController,
                   selectedNextDate,
                 )) {
                   return;
@@ -251,14 +422,9 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+
   bool _validateUpdateFields(
       String? status,
-      TextEditingController remarks,
-      TextEditingController serviceCharge,
-      TextEditingController receiptsNo,
-      String? paymentType,
-      TextEditingController paymentDescription,
-      TextEditingController ta,
       DateTime? nextDate,
       ) {
     if (status == null) {
@@ -274,6 +440,7 @@ class _HomePageState extends State<HomePage> {
     return true;
   }
 
+
   Map<String, dynamic> _prepareUpdateData(
       int index,
       String status,
@@ -285,42 +452,36 @@ class _HomePageState extends State<HomePage> {
       String ta,
       DateTime? nextDate,
       ) {
-    final bool isPending = status == 'Pending';
-
     return {
       'ticket': _staffData[index]['ticket'].toString(),
       'Status': status,
-      'Next Date': isPending && nextDate != null
-          ? nextDate.toIso8601String().split('T').first
-          : '',
-      'Remarks': '',
-      'Service Charge': '',
-      'Receipts No': '',
-      'Payments Type': '',
-      'Pay Description': '',
-      'TA': '',
+      'Next Date': nextDate?.toIso8601String().split('T').first ?? '',
+      'Remarks': remarks,
+      'Service Charge': serviceCharge,
+      'Receipts No': receiptsNo,
+      'Payments Type': paymentType,
+      'Pay Description': paymentDescription,
+      'TA': ta,
       'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
     };
   }
 
-
-
   void _showSuccessDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Success'),
-            content: const Text('Status updated successfully!'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Success'),
+        content: const Text('Status updated successfully!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
+
 
   ///update function
 
