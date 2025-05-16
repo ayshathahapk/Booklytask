@@ -166,35 +166,35 @@ class _UpdateDialogState extends State<UpdateDialog> {
             ),
             const SizedBox(height: 16),
             if(statusss=='Pending')
-            TextField(
-              onTap: () async {
-                final pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (pickedDate != null) {
-                  widget.onPickDate();
-                }
-              },
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Next Date',
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 12,
+              TextField(
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedDate != null) {
+                    widget.onPickDate();
+                  }
+                },
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: 'Next Date',
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 12,
+                  ),
+                  suffixIcon: const Icon(Icons.calendar_today),
                 ),
-                suffixIcon: const Icon(Icons.calendar_today),
+                controller: TextEditingController(
+                  text: widget.selectedNextDate != null
+                      ? DateFormat('yyyy-MM-dd').format(widget.selectedNextDate!)
+                      : 'Select Next Date',
+                ),
+                style: const TextStyle(fontSize: 16),
               ),
-              controller: TextEditingController(
-                text: widget.selectedNextDate != null
-                    ? DateFormat('yyyy-MM-dd').format(widget.selectedNextDate!)
-                    : 'Select Next Date',
-              ),
-              style: const TextStyle(fontSize: 16),
-            ),
           ],
         ),
       ),
@@ -213,6 +213,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
     );
   }
 }
+
 
 
 

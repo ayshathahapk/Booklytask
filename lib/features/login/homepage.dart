@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -141,186 +142,6 @@ class _HomePageState extends State<HomePage> {
       _showErrorSnackbar('Failed to logout: $e');
     }
   }
-  //
-  // Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse('$_baseUrl$_saveScheduleEndpoint'),
-  //       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-  //       body: {'json_val': jsonEncode(updateData)},
-  //     );
-  //
-  //     if (response.statusCode == 200 && response.body.contains('Success')) {
-  //       return true;
-  //     }
-  //     throw Exception('Failed to update status: ${response.body}');
-  //   } catch (e) {
-  //     _showErrorSnackbar('Failed to update status: $e');
-  //     return false;
-  //   }
-  // }
-  //
-  //
-  // void _showUpdateDialog(int index) {
-  //   String? selectedStatus = _staffData[index]['Status'];
-  //   final TextEditingController remarksController = TextEditingController();
-  //   final TextEditingController serviceChargeController =
-  //       TextEditingController();
-  //   final TextEditingController receiptsNoController = TextEditingController();
-  //   final TextEditingController paymentDescriptionController =
-  //       TextEditingController();
-  //   final TextEditingController taController = TextEditingController();
-  //   String? selectedPaymentType;
-  //   DateTime? selectedNextDate;
-  //
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return StatefulBuilder(
-  //         builder: (context, setState) {
-  //           Future<void> _pickNextDate() async {
-  //             final pickedDate = await showDatePicker(
-  //               context: context,
-  //               initialDate: DateTime.now(),
-  //               firstDate: DateTime(2000),
-  //               lastDate: DateTime(2100),
-  //             );
-  //             if (pickedDate != null) {
-  //               setState(() {
-  //                 selectedNextDate = pickedDate;
-  //               });
-  //             }
-  //           }
-  //
-  //           return UpdateDialog(
-  //             selectedStatus: selectedStatus,
-  //             remarksController: remarksController,
-  //             serviceChargeController: serviceChargeController,
-  //             receiptsNoController: receiptsNoController,
-  //             paymentDescriptionController: paymentDescriptionController,
-  //             taController: taController,
-  //             selectedPaymentType: selectedPaymentType,
-  //             selectedNextDate: selectedNextDate,
-  //             onStatusChanged: (value) {
-  //               setState(() {
-  //                 selectedStatus = value;
-  //               });
-  //             },
-  //             onPaymentTypeChanged: (value) {
-  //               setState(() {
-  //                 selectedPaymentType = value;
-  //               });
-  //             },
-  //             onPickDate: _pickNextDate,
-  //             onUpdate: () async {
-  //               if (!_validateUpdateFields(
-  //                 selectedStatus,
-  //                 remarksController,
-  //                 serviceChargeController,
-  //                 receiptsNoController,
-  //                 selectedPaymentType,
-  //                 paymentDescriptionController,
-  //                 taController,
-  //                 selectedNextDate,
-  //               )) {
-  //                 return;
-  //               }
-  //
-  //               final updateData = _prepareUpdateData(
-  //                 index,
-  //                 selectedStatus!,
-  //                 remarksController.text,
-  //                 serviceChargeController.text,
-  //                 receiptsNoController.text,
-  //                 selectedPaymentType!,
-  //                 paymentDescriptionController.text,
-  //                 taController.text,
-  //                 selectedNextDate,
-  //               );
-  //
-  //               final success = await _updateScheduleStatus(updateData);
-  //               if (success && mounted) {
-  //                 Navigator.of(context).pop();
-  //                 await _fetchScheduleData();
-  //                 _showSuccessDialog();
-  //               }
-  //             },
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-  // bool _validateUpdateFields(
-  //     String? status,
-  //     TextEditingController remarks,
-  //     TextEditingController serviceCharge,
-  //     TextEditingController receiptsNo,
-  //     String? paymentType,
-  //     TextEditingController paymentDescription,
-  //     TextEditingController ta,
-  //     DateTime? nextDate,
-  //     ) {
-  //   if (status == null) {
-  //     _showErrorSnackbar('Please select a status');
-  //     return false;
-  //   }
-  //
-  //   if (status == 'Pending' && nextDate == null) {
-  //     _showErrorSnackbar('Next Date is required when status is Pending');
-  //     return false;
-  //   }
-  //
-  //   return true;
-  // }
-  //
-  // Map<String, dynamic> _prepareUpdateData(
-  //     int index,
-  //     String status,
-  //     String remarks,
-  //     String serviceCharge,
-  //     String receiptsNo,
-  //     String paymentType,
-  //     String paymentDescription,
-  //     String ta,
-  //     DateTime? nextDate,
-  //     ) {
-  //   final bool isPending = status == 'Pending';
-  //
-  //   return {
-  //     'ticket': _staffData[index]['ticket'].toString(),
-  //     'Status': status,
-  //     'Next Date': isPending && nextDate != null
-  //         ? nextDate.toIso8601String().split('T').first
-  //         : '',
-  //     'Remarks': '',
-  //     'Service Charge': '',
-  //     'Receipts No': '',
-  //     'Payments Type': '',
-  //     'Pay Description': '',
-  //     'TA': '',
-  //     'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
-  //   };
-  // }
-  //
-  //
-  //
-  // void _showSuccessDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder:
-  //         (context) => AlertDialog(
-  //           title: const Text('Success'),
-  //           content: const Text('Status updated successfully!'),
-  //           actions: [
-  //             TextButton(
-  //               onPressed: () => Navigator.pop(context),
-  //               child: const Text('OK'),
-  //             ),
-  //           ],
-  //         ),
-  //   );
-  // }
 
   Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
     try {
@@ -329,11 +150,10 @@ class _HomePageState extends State<HomePage> {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {'json_val': jsonEncode(updateData)},
       );
-print("a");
+
       if (response.statusCode == 200 && response.body.contains('Success')) {
         return true;
       }
-      print("b");
       throw Exception('Failed to update status: ${response.body}');
     } catch (e) {
       _showErrorSnackbar('Failed to update status: $e');
@@ -341,13 +161,16 @@ print("a");
     }
   }
 
+
   void _showUpdateDialog(int index) {
-    final TextEditingController remarksController = TextEditingController();
-    final TextEditingController serviceChargeController = TextEditingController();
-    final TextEditingController receiptsNoController = TextEditingController();
-    final TextEditingController paymentDescriptionController = TextEditingController();
-    final TextEditingController taController = TextEditingController();
     String? selectedStatus = _staffData[index]['Status'];
+    final TextEditingController remarksController = TextEditingController();
+    final TextEditingController serviceChargeController =
+    TextEditingController();
+    final TextEditingController receiptsNoController = TextEditingController();
+    final TextEditingController paymentDescriptionController =
+    TextEditingController();
+    final TextEditingController taController = TextEditingController();
     String? selectedPaymentType;
     DateTime? selectedNextDate;
 
@@ -363,14 +186,13 @@ print("a");
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2100),
               );
-              print("c");
               if (pickedDate != null) {
                 setState(() {
                   selectedNextDate = pickedDate;
                 });
               }
             }
-print("d");
+
             return UpdateDialog(
               selectedStatus: selectedStatus,
               remarksController: remarksController,
@@ -391,16 +213,20 @@ print("d");
                 });
               },
               onPickDate: _pickNextDate,
-
               onUpdate: () async {
-                print("f");
                 if (!_validateUpdateFields(
                   selectedStatus,
+                  remarksController,
+                  serviceChargeController,
+                  receiptsNoController,
+                  selectedPaymentType,
+                  paymentDescriptionController,
+                  taController,
                   selectedNextDate,
                 )) {
                   return;
                 }
-print("g");
+
                 final updateData = _prepareUpdateData(
                   index,
                   selectedStatus!,
@@ -414,13 +240,11 @@ print("g");
                 );
 
                 final success = await _updateScheduleStatus(updateData);
-                print("h");
                 if (success && mounted) {
                   Navigator.of(context).pop();
                   await _fetchScheduleData();
                   _showSuccessDialog();
                 }
-                print("i");
               },
             );
           },
@@ -428,25 +252,28 @@ print("g");
       },
     );
   }
-
   bool _validateUpdateFields(
       String? status,
+      TextEditingController remarks,
+      TextEditingController serviceCharge,
+      TextEditingController receiptsNo,
+      String? paymentType,
+      TextEditingController paymentDescription,
+      TextEditingController ta,
       DateTime? nextDate,
       ) {
-    print("j");
     if (status == null) {
       _showErrorSnackbar('Please select a status');
       return false;
     }
-print("k");
+
     if (status == 'Pending' && nextDate == null) {
       _showErrorSnackbar('Next Date is required when status is Pending');
       return false;
     }
-print("l");
+
     return true;
   }
-
 
   Map<String, dynamic> _prepareUpdateData(
       int index,
@@ -459,25 +286,32 @@ print("l");
       String ta,
       DateTime? nextDate,
       ) {
-    print("m");
+    final bool isPending = status == 'Pending';
+
     return {
       'ticket': _staffData[index]['ticket'].toString(),
       'Status': status,
-      'Next Date': nextDate?.toIso8601String().split('T').first ?? '',
-      'Remarks': remarks,
-      'Service Charge': serviceCharge,
-      'Receipts No': receiptsNo,
-      'Payments Type': paymentType,
-      'Pay Description': paymentDescription,
-      'TA': ta,
+      'Next Date': isPending && nextDate != null
+          ? nextDate.toIso8601String().split('T').first
+          : '',
+      // All other fields sent as empty strings regardless of input
+      'Remarks': '',
+      'Service Charge': '',
+      'Receipts No': '',
+      'Payments Type': '',
+      'Pay Description': '',
+      'TA': '',
       'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
-  };
+    };
   }
+
+
 
   void _showSuccessDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder:
+          (context) => AlertDialog(
         title: const Text('Success'),
         content: const Text('Status updated successfully!'),
         actions: [
@@ -490,7 +324,6 @@ print("l");
     );
   }
 
-
   ///update function
 
   // PDF Generation
@@ -502,18 +335,18 @@ print("l");
         pageFormat: PdfPageFormat.a4,
         build:
             (context) => [
-              pw.Header(
-                level: 0,
-                child: pw.Text(
-                  "Schedule for ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
-                  style: pw.TextStyle(
-                    fontSize: 20,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
+          pw.Header(
+            level: 0,
+            child: pw.Text(
+              "Schedule for ${DateFormat('yyyy-MM-dd').format(_selectedDate)}",
+              style: pw.TextStyle(
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
               ),
-              ..._staffData.map((staff) => _buildPdfStaffCard(staff)).toList(),
-            ],
+            ),
+          ),
+          ..._staffData.map((staff) => _buildPdfStaffCard(staff)).toList(),
+        ],
       ),
     );
 
@@ -591,19 +424,19 @@ print("l");
                 context: context,
                 builder:
                     (BuildContext context) => AlertDialog(
-                      title: const Text("Logout"),
-                      content: const Text("Do you really want to log out?"),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text("Cancel"),
-                        ),
-                        TextButton(
-                          onPressed: () => logout(context),
-                          child: const Text("Logout"),
-                        ),
-                      ],
+                  title: const Text("Logout"),
+                  content: const Text("Do you really want to log out?"),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text("Cancel"),
                     ),
+                    TextButton(
+                      onPressed: () => logout(context),
+                      child: const Text("Logout"),
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -619,18 +452,18 @@ print("l");
             const SizedBox(height: 24),
             Expanded(
               child:
-                  _staffData.isEmpty
-                      ? const Center(child: Text("No schedule found"))
-                      : ListView.builder(
-                        itemCount: _staffData.length,
-                        itemBuilder: (context, index) {
-                          return ScheduleCard(
-                            staff: _staffData[index],
-                            onPhoneCall: _makePhoneCall,
-                            onUpdate: () => _showUpdateDialog(index),
-                          );
-                        },
-                      ),
+              _staffData.isEmpty
+                  ? const Center(child: Text("No schedule found"))
+                  : ListView.builder(
+                itemCount: _staffData.length,
+                itemBuilder: (context, index) {
+                  return ScheduleCard(
+                    staff: _staffData[index],
+                    onPhoneCall: _makePhoneCall,
+                    onUpdate: () => _showUpdateDialog(index),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -638,4 +471,5 @@ print("l");
     );
   }
 }
+
 
