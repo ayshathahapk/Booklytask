@@ -9,7 +9,6 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:booklytask/features/login/widgets/schedule_card.dart';
-import 'package:booklytask/features/login/widgets/update_dialog.dart';
 import 'package:booklytask/features/login/widgets/date_picker_button.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,11 +22,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // Controllers
   late TextEditingController _empIdController;
-
   // State variables
   DateTime _selectedDate = DateTime.now();
   List<Map<String, dynamic>> _staffData = [];
-
   // API endpoints
   static const String _baseUrl = 'https://neptonglobal.co.in/Master/schedule';
   static const String _scheduleDataEndpoint = '/scheduledata.php';
@@ -90,7 +87,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -112,7 +108,6 @@ class _HomePageState extends State<HomePage> {
       await _fetchScheduleData();
     }
   }
-
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
     try {
@@ -126,7 +121,6 @@ class _HomePageState extends State<HomePage> {
       _showErrorSnackbar('Could not launch dialer for $phoneNumber');
     }
   }
-
   Future<void> logout(BuildContext context) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -144,113 +138,210 @@ class _HomePageState extends State<HomePage> {
 
   Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
     try {
+      final body = {
+        'json_val': jsonEncode(updateData), // This sends JSON inside a form field
+      };
+
+      debugPrint('Sending update data: $body');
+
       final response = await http.post(
         Uri.parse('$_baseUrl$_saveScheduleEndpoint'),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {'json_val': jsonEncode(updateData)},
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body,
       );
 
-      if (response.statusCode == 200 && response.body.contains('Success')) {
-        return true;
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+
+        if (responseBody is Map &&
+            (responseBody['status'] == 'success' ||
+                responseBody['message']?.toString().toLowerCase().contains('success') == true)) {
+          return true;
+        }
+      } else {
+        throw Exception('API Error: ${response.statusCode} - ${response.body}');
       }
-      throw Exception('Failed to update status: ${response.body}');
     } catch (e) {
-      _showErrorSnackbar('Failed to update status: $e');
+      debugPrint('Update error: $e');
+      if (mounted) {
+        _showErrorSnackbar(
+          'Update failed: ${e.toString().replaceFirst('Exception: ', '')}',
+        );
+      }
       return false;
     }
+
+    return false;
   }
 
-
   void _showUpdateDialog(int index) {
-    String? selectedStatus = _staffData[index]['Status'];
-    final TextEditingController remarksController = TextEditingController();
-    final TextEditingController serviceChargeController =
-    TextEditingController();
-    final TextEditingController receiptsNoController = TextEditingController();
-    final TextEditingController paymentDescriptionController =
-    TextEditingController();
-    final TextEditingController taController = TextEditingController();
-    String? selectedPaymentType;
-    DateTime? selectedNextDate;
+    final staffItem = _staffData[index];
+    String? selectedStatus = staffItem['Status'];
+    final remarksController = TextEditingController(text: staffItem['Remarks'] ?? '');
+    final serviceChargeController = TextEditingController(
+        text: staffItem['Service Charge']?.toString() ?? '');
+    final receiptsNoController = TextEditingController(
+        text: staffItem['Receipts No'] ?? '');
+    final paymentDescriptionController = TextEditingController(
+        text: staffItem['Pay Description'] ?? '');
+    final taController = TextEditingController(
+        text: staffItem['TA']?.toString() ?? '');
+    String? selectedPaymentType = staffItem['Payments Type'];
+    DateTime? selectedNextDate = staffItem['Next Date'] != null
+        ? DateTime.tryParse(staffItem['Next Date'])
+        : null;
 
     showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            Future<void> _pickNextDate() async {
-              final pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
-              );
-              if (pickedDate != null) {
-                setState(() {
-                  selectedNextDate = pickedDate;
-                });
-              }
-            }
-
-            return UpdateDialog(
-              selectedStatus: selectedStatus,
-              remarksController: remarksController,
-              serviceChargeController: serviceChargeController,
-              receiptsNoController: receiptsNoController,
-              paymentDescriptionController: paymentDescriptionController,
-              taController: taController,
-              selectedPaymentType: selectedPaymentType,
-              selectedNextDate: selectedNextDate,
-              onStatusChanged: (value) {
-                setState(() {
-                  selectedStatus = value;
-                });
-              },
-              onPaymentTypeChanged: (value) {
-                setState(() {
-                  selectedPaymentType = value;
-                });
-              },
-              onPickDate: _pickNextDate,
-              onUpdate: () async {
-                if (!_validateUpdateFields(
-                  selectedStatus,
-                  remarksController,
-                  serviceChargeController,
-                  receiptsNoController,
-                  selectedPaymentType,
-                  paymentDescriptionController,
-                  taController,
-                  selectedNextDate,
-                )) {
-                  return;
-                }
-
-                final updateData = _prepareUpdateData(
-                  index,
-                  selectedStatus!,
-                  remarksController.text,
-                  serviceChargeController.text,
-                  receiptsNoController.text,
-                  selectedPaymentType!,
-                  paymentDescriptionController.text,
-                  taController.text,
-                  selectedNextDate,
-                );
-
-                final success = await _updateScheduleStatus(updateData);
-                if (success && mounted) {
-                  Navigator.of(context).pop();
-                  await _fetchScheduleData();
-                  _showSuccessDialog();
-                }
-              },
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          Future<void> _pickNextDate() async {
+            final pickedDate = await showDatePicker(
+              context: context,
+              initialDate: selectedNextDate ?? DateTime.now(),
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
             );
-          },
-        );
-      },
+            if (pickedDate != null) {
+              setState(() => selectedNextDate = pickedDate);
+            }
+          }
+
+          return AlertDialog(
+            title: const Text('Update Status'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: selectedStatus,
+                    items: ['Completed', 'Pending', 'Cancel']
+                        .map((status) => DropdownMenuItem(
+                      value: status,
+                      child: Text(status),
+                    ))
+                        .toList(),
+                    onChanged: (value) => setState(() => selectedStatus = value),
+                    decoration: const InputDecoration(labelText: 'Status'),
+                  ),
+
+                  if (selectedStatus == 'Pending') ...[
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      readOnly: true,
+                      controller: TextEditingController(
+                          text: selectedNextDate != null
+                              ? DateFormat('yyyy-MM-dd').format(selectedNextDate!)
+                              : ''),
+                      decoration: const InputDecoration(
+                        labelText: 'Next Date',
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      onTap: _pickNextDate,
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: remarksController,
+                    decoration: const InputDecoration(labelText: 'Remarks'),
+                    maxLines: 2,
+                  ),
+
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: serviceChargeController,
+                    decoration: const InputDecoration(labelText: 'Service Charge'),
+                    keyboardType: TextInputType.number,
+                  ),
+
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: receiptsNoController,
+                    decoration: const InputDecoration(labelText: 'Receipts No'),
+                  ),
+
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedPaymentType,
+                    items: ['Cash', 'Check', 'Transfer', ]
+                        .map((type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    ))
+                        .toList(),
+                    onChanged: (value) => setState(() => selectedPaymentType = value),
+                    decoration: const InputDecoration(labelText: 'Payment Type'),
+                  ),
+
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: paymentDescriptionController,
+                    decoration: const InputDecoration(labelText: 'Payment Description'),
+                  ),
+
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: taController,
+                    decoration: const InputDecoration(labelText: 'TA'),
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (!_validateUpdateFields(
+                    selectedStatus,
+                    remarksController,
+                    serviceChargeController,
+                    receiptsNoController,
+                    selectedPaymentType,
+                    paymentDescriptionController,
+                    taController,
+                    selectedNextDate,
+                  )) {
+                    return;
+                  }
+
+                  final updateData = _prepareUpdateData(
+                    index,
+                    selectedStatus!,
+                    remarksController.text,
+                    serviceChargeController.text,
+                    receiptsNoController.text,
+                    selectedPaymentType!,
+                    paymentDescriptionController.text,
+                    taController.text,
+                    selectedNextDate,
+                  );
+
+                  final success = await _updateScheduleStatus(updateData);
+                  if (success && mounted) {
+                    Navigator.pop(context);
+                    await _fetchScheduleData();
+                    _showSuccessDialog();
+                  }
+                },
+                child: const Text('Update'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
+
   bool _validateUpdateFields(
       String? status,
       TextEditingController remarks,
@@ -271,9 +362,18 @@ class _HomePageState extends State<HomePage> {
       return false;
     }
 
+    if (serviceCharge.text.isNotEmpty && double.tryParse(serviceCharge.text) == null) {
+      _showErrorSnackbar('Service Charge must be a valid number');
+      return false;
+    }
+
+    if (ta.text.isNotEmpty && double.tryParse(ta.text) == null) {
+      _showErrorSnackbar('TA must be a valid number');
+      return false;
+    }
+
     return true;
   }
-
   Map<String, dynamic> _prepareUpdateData(
       int index,
       String status,
@@ -285,43 +385,43 @@ class _HomePageState extends State<HomePage> {
       String ta,
       DateTime? nextDate,
       ) {
-    final bool isPending = status == 'Pending';
-
-    return {
-      'ticket': _staffData[index]['ticket'].toString(),
+    final Map<String, dynamic> data = {
+      'ticket': _staffData[index]['ticket']?.toString() ?? '',
       'Status': status,
-      'Next Date': isPending && nextDate != null
-          ? nextDate.toIso8601String().split('T').first
-          : '',
-      // All other fields sent as empty strings regardless of input
-      'Remarks': '',
-      'Service Charge': '',
-      'Receipts No': '',
-      'Payments Type': '',
-      'Pay Description': '',
-      'TA': '',
-      'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()),
+      'Remarks': remarks.trim(),
+      'Service Charge': double.tryParse(serviceCharge) ?? 0,
+      'Receipts No': receiptsNo.trim(),
+      'Payments Type': paymentType.trim(),
+      'Pay Description': paymentDescription.trim(),
+      'TA': double.tryParse(ta) ?? 0,
+      'chequedt': DateFormat('yyyy-MM-dd').format(DateTime.now()),
     };
+
+    if (status == 'Pending' && nextDate != null) {
+      data['Next Date'] = DateFormat('yyyy-MM-dd').format(nextDate);
+    }
+
+    return data;
   }
-
-
-
   void _showSuccessDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
+      builder: (context) => AlertDialog(
         title: const Text('Success'),
         content: const Text('Status updated successfully!'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {}); // Refresh the UI
+            },
             child: const Text('OK'),
           ),
         ],
       ),
     );
   }
+
 
   ///update function
 
