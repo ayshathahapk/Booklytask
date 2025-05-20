@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
   Future<bool> _updateScheduleStatus(Map<String, dynamic> updateData) async {
     try {
       final body = {
-        'json_val': jsonEncode(updateData), // This sends JSON inside a form field
+        'json_val': jsonEncode(updateData),
       };
 
       debugPrint('Sending update data: $body');
@@ -156,11 +156,9 @@ class _HomePageState extends State<HomePage> {
       debugPrint('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
+        final responseBody = response.body.trim();
 
-        if (responseBody is Map &&
-            (responseBody['status'] == 'success' ||
-                responseBody['message']?.toString().toLowerCase().contains('success') == true)) {
+        if (responseBody.toLowerCase().contains('success')) {
           return true;
         }
       } else {
@@ -178,7 +176,6 @@ class _HomePageState extends State<HomePage> {
 
     return false;
   }
-
   void _showUpdateDialog(int index) {
     final staffItem = _staffData[index];
     String? selectedStatus = staffItem['Status'];
@@ -248,6 +245,12 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: taController,
+                    decoration: const InputDecoration(labelText: 'TA'),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
                     controller: remarksController,
                     decoration: const InputDecoration(labelText: 'Remarks'),
                     maxLines: 2,
@@ -285,12 +288,6 @@ class _HomePageState extends State<HomePage> {
                     decoration: const InputDecoration(labelText: 'Payment Description'),
                   ),
 
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: taController,
-                    decoration: const InputDecoration(labelText: 'TA'),
-                    keyboardType: TextInputType.number,
-                  ),
                 ],
               ),
             ),
@@ -314,20 +311,20 @@ class _HomePageState extends State<HomePage> {
                     return;
                   }
 
-                  final updateData = _prepareUpdateData(
-                    index,
-                    selectedStatus!,
-                    remarksController.text,
-                    serviceChargeController.text,
-                    receiptsNoController.text,
-                    selectedPaymentType!,
-                    paymentDescriptionController.text,
-                    taController.text,
-                    selectedNextDate,
+                  final  updateData = _prepareUpdateData(
+                  index,
+                  selectedStatus ?? '',
+                  remarksController.text,
+                  serviceChargeController.text,
+                  receiptsNoController.text,
+                  selectedPaymentType ?? '',
+                  paymentDescriptionController.text,
+                  taController.text,
+                  selectedNextDate,
                   );
 
                   final success = await _updateScheduleStatus(updateData);
-                  if (success && mounted) {
+                  if (success) {
                     Navigator.pop(context);
                     await _fetchScheduleData();
                     _showSuccessDialog();
@@ -394,12 +391,11 @@ class _HomePageState extends State<HomePage> {
       'Payments Type': paymentType.trim(),
       'Pay Description': paymentDescription.trim(),
       'TA': double.tryParse(ta) ?? 0,
-      'chequedt': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      'chequedt': DateFormat('yy-MM-dd').format(DateTime.now()), // ← matches your sample format
+      'Next Date': (status == 'Pending' && nextDate != null)
+          ? DateFormat('yyyy-MM-dd').format(nextDate)
+          : 'null', // ← string "null", as required
     };
-
-    if (status == 'Pending' && nextDate != null) {
-      data['Next Date'] = DateFormat('yyyy-MM-dd').format(nextDate);
-    }
 
     return data;
   }
